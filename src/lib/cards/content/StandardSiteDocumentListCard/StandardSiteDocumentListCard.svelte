@@ -36,13 +36,8 @@
 
 <div class="flex h-full flex-col gap-10 overflow-y-scroll p-8">
 	{#if feed && feed.length > 0}
-		{#each feed as document (document.uri)}
-			<BlogEntry
-				title={document.value.title}
-				description={document.value.description}
-				date={document.value.publishedAt}
-				href={document.value.href}
-			/>
+		{#each feed as document (document.href)}
+			<BlogEntry {...document} />
 		{/each}
 	{:else if feed}
 		<div class="z-50 flex h-full flex-col items-center justify-center gap-4 text-center text-sm">

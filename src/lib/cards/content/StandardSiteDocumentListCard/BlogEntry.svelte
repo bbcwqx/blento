@@ -1,12 +1,16 @@
+<script lang="ts" module>
+	export interface BlogItem {
+		title: string;
+		date: string;
+		description?: string;
+		href: string;
+	}
+</script>
+
 <script lang="ts">
 	import DateTime from './DateTime.svelte';
 
-	let {
-		title,
-		date,
-		description,
-		href
-	}: { title: string; date: string; description: string; href: string } = $props();
+	let { title, date, description, href }: BlogItem = $props();
 </script>
 
 <article class="group/article relative isolate flex flex-col">

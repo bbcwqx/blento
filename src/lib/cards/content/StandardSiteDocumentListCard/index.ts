@@ -1,6 +1,10 @@
-import { getRecord, listRecords, parseUri } from '$lib/atproto';
-import type { CardDefinition } from '../../types';
 import StandardSiteDocumentListCard from './StandardSiteDocumentListCard.svelte';
+import { getRecord, listRecords, parseUri } from '$lib/atproto';
+import { SiteStandardDocument } from '@atcute/standard-site';
+import { isGenericUri } from '@atcute/lexicons/syntax';
+import type { BlogItem } from './BlogEntry.svelte';
+import type { CardDefinition } from '../../types';
+import { is } from '@atcute/lexicons';
 
 export const StandardSiteDocumentListCardDefinition = {
 	type: 'publicationList',
@@ -11,16 +15,17 @@ export const StandardSiteDocumentListCardDefinition = {
 		card.mobileH = 6;
 	},
 
-	loadData: async (items, { did }) => {
+	loadData: async (_, { did }) => {
 		const records = await listRecords({ did, collection: 'site.standard.document' });
+		const items: BlogItem[] = [];
 
-		const publications: Record<string, string> = {};
+		const publications: Record<string, SiteStandardDocument.Main['site']> = {};
 		for (const record of records) {
-			const site = record.value.site as string;
+			if (!is(SiteStandardDocument.mainSchema, record.value)) continue;
 
-			if (site && site.startsWith('at://')) {
-				if (!publications[site]) {
-					const siteParts = parseUri(site);
+			if (record.value.site.startsWith('at://')) {
+				if (!publications[record.value.site]) {
+					const siteParts = parseUri(record.value.site);
 
 					if (!siteParts) continue;
 
@@ -31,17 +36,26 @@ export const StandardSiteDocumentListCardDefinition = {
 					});
 
 					if (!publicationRecord.value) continue;
+					const { url } = publicationRecord.value;
 
-					publications[site] = publicationRecord.value.url as string;
+					if (isGenericUri(url) && url.startsWith('http')) {
+						publications[record.value.site] = url;
+					}
 				}
 
-				record.value.href = publications[site] + record.value.path;
-			} else {
-				record.value.href = (site ?? '') + record.value.path;
+				record.value.site = publications[record.value.site];
+				if (!record.value.site) continue;
 			}
+
+			items.push({
+				href: `${record.value.site}${record.value.path}`,
+				title: record.value.title,
+				description: record.value.description,
+				date: record.value.publishedAt
+			});
 		}
 
-		return records.filter((r) => r.value?.href);
+		return items.toSorted((a, b) => Date.parse(b.date) - Date.parse(a.date));
 	},
 
 	name: 'Blog Posts',
