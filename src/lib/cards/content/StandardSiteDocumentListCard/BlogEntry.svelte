@@ -15,7 +15,9 @@
 
 <article class="group/article relative isolate flex flex-col">
 	<div class="text-base-500 accent:text-accent-950 flex shrink-0 items-center gap-x-4 text-xs">
-		<DateTime date={new Date(date)} />
+		{#if date && !isNaN(new Date(date).getTime())}
+			<DateTime date={new Date(date)} />
+		{/if}
 	</div>
 	<div class="max-w-xl">
 		<div class="text-base-900 dark:text-base-50 mt-3 text-lg leading-6 font-semibold">
